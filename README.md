@@ -22,6 +22,12 @@ Voir [Déploiement sur Google Cloud](docs/google_cloud.md).
 - Rust
 - Docker
 
+Attention, si vous souhaitez le lancer sans Docker, vous devez installer les dépendances suivantes:
+
+- Python3 (voir [ici](https://www.python.org/downloads/))
+- Lua (voir [ici](https://www.lua.org/download.html))
+- Rutc (voir [ici](https://www.rust-lang.org/tools/install))
+
 ### Lancer le serveur
 
 ```bash
