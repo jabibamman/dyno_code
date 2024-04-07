@@ -1,6 +1,6 @@
 use crate::types::{ExecutionPayload, ExecutionResult};
+use std::io::{Error, Write};
 use std::process::Command;
-use std::io::{Write, Error};
 use tempfile::NamedTempFile;
 
 pub struct SimpleExecutor;
@@ -12,20 +12,18 @@ impl SimpleExecutor {
                 .arg("-c")
                 .arg(&payload.code)
                 .output(),
-            "lua" => Command::new("lua")
-                .arg("-e")
-                .arg(&payload.code)
-                .output(),
+            "lua" => Command::new("lua").arg("-e").arg(&payload.code).output(),
             "rust" => Self::compile_and_run_rust_code(&payload.code),
-            _ => Err(Error::new(std::io::ErrorKind::Other, "Language not supported")),
+            _ => Err(Error::new(
+                std::io::ErrorKind::Other,
+                "Language not supported",
+            )),
         };
 
         match output {
-            Ok(output) => {
-                ExecutionResult {
-                    output: String::from_utf8_lossy(&output.stdout).to_string(),
-                    error: String::from_utf8_lossy(&output.stderr).to_string(),
-                }
+            Ok(output) => ExecutionResult {
+                output: String::from_utf8_lossy(&output.stdout).to_string(),
+                error: String::from_utf8_lossy(&output.stderr).to_string(),
             },
             Err(e) => ExecutionResult {
                 output: "".to_string(),
