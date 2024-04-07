@@ -1,5 +1,5 @@
 use actix_web::{web, App, HttpResponse, HttpServer};
-use crate::executor::{CodeExecutor, SimpleExecutor};
+use crate::executor::SimpleExecutor;
 use crate::types::ExecutionPayload;
 
 async fn execute_code(payload: web::Json<ExecutionPayload>) -> impl actix_web::Responder {

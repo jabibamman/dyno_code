@@ -1,5 +1,5 @@
 use crate::types::{ExecutionPayload, ExecutionResult};
-use std::process::{Command, Stdio};
+use std::process::Command;
 use std::io::{Write, Error};
 use tempfile::NamedTempFile;
 
@@ -54,5 +54,62 @@ impl SimpleExecutor {
         } else {
             Ok(compile_output)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_execute_python() {
+        let payload = ExecutionPayload {
+            language: "python".to_string(),
+            code: "print('Hello, world!')".to_string(),
+        };
+
+        let result = SimpleExecutor::execute(&payload);
+
+        assert_eq!(result.output, "Hello, world!\r\n");
+        assert_eq!(result.error, "");
+    }
+
+    #[test]
+    fn test_execute_lua() {
+        let payload = ExecutionPayload {
+            language: "lua".to_string(),
+            code: "print('Hello, world!\n')".to_string(),
+        };
+
+        let result = SimpleExecutor::execute(&payload);
+
+        assert_eq!(result.output, "Hello, world!\n");
+        assert_eq!(result.error, "");
+    }
+
+    #[test]
+    fn test_execute_rust() {
+        let payload = ExecutionPayload {
+            language: "rust".to_string(),
+            code: "fn main() { println!(\"Hello, world!\"); }".to_string(),
+        };
+
+        let result = SimpleExecutor::execute(&payload);
+
+        assert_eq!(result.output, "Hello, world!\n");
+        assert_eq!(result.error, "");
+    }
+
+    #[test]
+    fn test_execute_unsupported_language() {
+        let payload = ExecutionPayload {
+            language: "unsupported".to_string(),
+            code: "print('Hello, world!')".to_string(),
+        };
+
+        let result = SimpleExecutor::execute(&payload);
+
+        assert_eq!(result.output, "");
+        assert!(result.error.contains("Language not supported"));
     }
 }
