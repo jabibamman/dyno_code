@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dyno-code-deployment
+  labels:
+    app: dyno-code
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dyno-code
+  template:
+    metadata:
+      labels:
+        app: dyno-code
+    spec:
+      containers:
+        - name: dyno-code
+          image: gcr.io/pa-2024-419613/dyno_code:latest
+          ports:
+            - containerPort: 8080

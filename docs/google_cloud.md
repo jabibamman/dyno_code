@@ -1,4 +1,3 @@
-
 # Déploiement sur Google Cloud
 
 ## Introduction
@@ -32,11 +31,11 @@ gcloud auth configure-docker
 ## Déployer l'Application Rust sur Google Cloud Run
 
 ### Créer un fichier Dockerfile
-   
+
 Il est nécessaire de créer un fichier Dockerfile à la racine du projet pour définir l'image Docker.
 
 ### Construire l'image Docker et la pousser vers Google Container Registry (GCR):
-   
+
 Remplacez <IMAGE_NAME> par le nom de votre image (par exemple, dyno_code) et <PROJECT_ID> par votre ID de projet Google Cloud.
 
 ```bash
@@ -53,3 +52,70 @@ gcloud run deploy <SERVICE_NAME> --image gcr.io/<PROJECT_ID>/<IMAGE_NAME> --plat
 
 `--allow-unauthenticated` permet d'accéder au service sans authentification. Environnement de production, envisagez de gérer l'accès via IAM ou des mécanismes d'authentification.
 `--region europe-west1` spécifie la région de déploiement. Choisissez la région la plus proche de vos utilisateurs.
+
+### Déployer sur kube
+
+### Créer le cluster kube
+
+1. Créez un cluster Kubernetes:
+
+````bash
+```bash
+gcloud container clusters create \
+  --machine-type n1-standard-2 \
+  --num-nodes 2 \
+  --zone us-east1-c \
+  --cluster-version latest \
+  dyno_code_kube
+````
+
+2. Configurez kubectl pour utiliser le cluster:
+
+```bash
+  gcloud beta container node-pools create user-pool \
+  --machine-type n1-standard-2 \
+  --num-nodes 0 \
+  --enable-autoscaling \
+  --min-nodes 0 \
+  --max-nodes 3 \
+  --node-labels hub.jupyter.org/node-purpose=user \
+  --node-taints hub.jupyter.org_dedicated=user:NoSchedule \
+  --zone us-east1-c \
+  --cluster dyno-code-kube
+```
+
+3. Obtenir les informations d'accès au cluster :
+
+```bash
+gcloud container clusters get-credentials dyno-code-kube --zone us-east1-c
+```
+
+4. Vérifiez que kubectl est configuré pour utiliser le cluster:
+
+```bash
+kubectl config view
+kubectl config current-context
+cat ~/.kube/config
+```
+
+5. Vérifiez que le cluster est prêt:
+
+```bash
+kubectl get services
+kubectl get service dyno-code-service
+```
+
+6. Build l'image Docker et la pousser vers Google Container Registry (GCR):
+
+```bash
+docker build -t dyno_code_api/dyno_code:latest .
+docker tag dyno_code_api/dyno_code:latest gcr.io/pa-2024-419613/dyno_code:latest
+docker push gcr.io/pa-2024-419613/dyno_code:latest
+```
+
+6. Déployez l'application sur le cluster:
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
