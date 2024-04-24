@@ -5,7 +5,7 @@ metadata:
   labels:
     app: dyno-code
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: dyno-code
@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: dyno-code
-          image: gcr.io/pa-2024-419613/dyno_code:latest
+          image: gcr.io/pa2024-421814/dyno-code:latest
           ports:
             - containerPort: 8080

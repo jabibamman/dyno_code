@@ -66,7 +66,7 @@ gcloud container clusters create \
   --num-nodes 2 \
   --zone us-east1-c \
   --cluster-version latest \
-  dyno_code_kube
+  dyno-code-kube
 ````
 
 2. Configurez kubectl pour utiliser le cluster:
