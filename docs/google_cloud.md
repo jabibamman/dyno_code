@@ -108,9 +108,9 @@ kubectl get service dyno-code-service
 6. Build l'image Docker et la pousser vers Google Container Registry (GCR):
 
 ```bash
-docker build -t dyno_code_api/dyno_code:latest .
-docker tag dyno_code_api/dyno_code:latest gcr.io/pa-2024-419613/dyno_code:latest
-docker push gcr.io/pa-2024-419613/dyno_code:latest
+docker build -t dyno_code_api/dyno-code:latest .
+docker tag dyno_code_api/dyno_code:latest gcr.io/pa-2024-419613/dyno-code:latest
+docker push gcr.io/pa-2024-419613/dyno-code:latest
 ```
 
 6. Déployez l'application sur le cluster:
@@ -118,4 +118,22 @@ docker push gcr.io/pa-2024-419613/dyno_code:latest
 ```bash
 kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
+```
+
+7. Si vous avez mis a jout le docker latest, vous pouvez mettre a jour l'image du pod:
+
+```bash
+kubectl set image deployment/dyno-code-deployment dyno-code=gcr.io/pa-2024-419613/dyno-code:latest
+```
+
+8. Redeployez l'application:
+
+```bash
+kubectl rollout restart deployment/dyno-code-deployment
+```
+
+9. Pour voir les logs:
+
+```bash
+kubectl logs -f deployment/dyno-code-deployment
 ```
