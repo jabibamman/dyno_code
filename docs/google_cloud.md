@@ -55,7 +55,7 @@ gcloud run deploy <SERVICE_NAME> --image gcr.io/<PROJECT_ID>/<IMAGE_NAME> --plat
 
 ### Déployer sur kube
 
-### Créer le cluster kube
+#### Créer le cluster kube
 
 1. Créez un cluster Kubernetes:
 
@@ -66,7 +66,7 @@ gcloud container clusters create \
   --num-nodes 2 \
   --zone us-east1-c \
   --cluster-version latest \
-  dyno_code_kube
+  dyno-code-kube
 ````
 
 2. Configurez kubectl pour utiliser le cluster:
@@ -137,3 +137,34 @@ kubectl rollout restart deployment/dyno-code-deployment
 ```bash
 kubectl logs -f deployment/dyno-code-deployment
 ```
+
+#### Editer le cluster kube
+
+1. Pour redimensionner le cluster:
+2. 
+```bash
+gcloud container clusters resize dyno-code-kube \
+  --zone us-east1-c \
+  --node-pool default-pool \
+  --num-nodes 1
+```
+
+1.a. Pour redimensionner l'user pool:
+
+```bash
+gcloud container node-pools update user-pool \
+  --cluster dyno-code-kube \
+  --zone us-east1-c \
+  --enable-autoscaling \
+  --min-nodes 0 \
+  --max-nodes 2
+```
+
+1. Pour supprimer le cluster:
+```bash
+gcloud container clusters delete dyno-code-kube --zone us-east1-c
+```
+
+### Conclusion
+
+Félicitations! Vous avez déployé une application Rust sur Google Cloud Run. Vous pouvez maintenant accéder à votre application via l'URL fournie par Cloud Run. Pour plus d'informations, consultez la [documentation officielle](https://cloud.google.com/run/docs).
