@@ -1,6 +1,14 @@
-use crate::types::{ExecutionPayload, ExecutionResult};
-use std::io::{Error, Write};
-use std::process::Command;
+use crate::types::{
+    ExecutionPayload,
+    ExecutionResult,
+};
+use std::{
+    io::{
+        Error,
+        Write,
+    },
+    process::Command,
+};
 use tempfile::NamedTempFile;
 
 pub struct SimpleExecutor;

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dyno-code-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: dyno-code-role
+rules:
+- apiGroups: ["batch", ""]
+  resources: ["jobs", "pods", "pods/log"]
+  verbs: ["create", "get", "list", "watch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dyno-code-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: dyno-code-sa
+  namespace: default
+roleRef:
+  kind: Role
+  name: dyno-code-role
+  apiGroup: rbac.authorization.k8s.io

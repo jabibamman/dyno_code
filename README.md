@@ -40,3 +40,32 @@ cargo run
 docker build -t dyno_code .
 docker run -p 8080:8080 dyno_code
 ```	
+
+### Pour déployer sur K8s
+
+Avant de déployer sur K8s veuillez lire la documentation [ici](docs/google_cloud.md).
+
+```bash
+./deploy_k8s.sh
+kubectl get pods -l app=dyno-code
+kubectl logs -f <pod_name>
+```
+
+### Le formattage
+
+```bash
+cargo fmt
+```
+
+Si vous avez des problèmes avec le formattage tel que :
+  
+```bash
+unstable features are only available in nightly channel.
+```
+
+Vous pouvez utiliser la commande suivante :
+
+```bash
+rustup toolchain install nightly
+rustup override set nightly
+```

@@ -109,8 +109,11 @@ kubectl get service dyno-code-service
 
 ```bash
 docker build -t dyno_code_api/dyno-code:latest .
-docker tag dyno_code_api/dyno_code:latest gcr.io/pa-2024-419613/dyno-code:latest
-docker push gcr.io/pa-2024-419613/dyno-code:latest
+docker tag dyno_code_api/dyno-code:latest gcr.io/pa2024-421814/dyno-code:latest
+docker push gcr.io/pa2024-421814/dyno-code:latest
+
+docker build -f Dockerfile.executor -t gcr.io/pa2024-421814/executor:latest .
+docker push gcr.io/pa2024-421814/executor:latest
 ```
 
 6. Déployez l'application sur le cluster:
@@ -118,12 +121,13 @@ docker push gcr.io/pa-2024-419613/dyno-code:latest
 ```bash
 kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
+kubectl apply -f role_binding.yaml
 ```
 
-7. Si vous avez mis a jout le docker latest, vous pouvez mettre a jour l'image du pod:
+7. Si vous avez mis a jour le docker latest, vous pouvez mettre a jour l'image du pod:
 
 ```bash
-kubectl set image deployment/dyno-code-deployment dyno-code=gcr.io/pa-2024-419613/dyno-code:latest
+kubectl set image deployment/dyno-code-deployment dyno-code=gcr.io/pa2024-421814/dyno-code:latest
 ```
 
 8. Redeployez l'application:
@@ -136,4 +140,22 @@ kubectl rollout restart deployment/dyno-code-deployment
 
 ```bash
 kubectl logs -f deployment/dyno-code-deployment
+```
+
+10. Pour voir les pods:
+
+```bash
+ kubectl get pods -l app=dyno-code
+```
+
+11. Pour voir les logs d'un pod:
+
+```bash
+kubectl logs -f <pod_name>
+```
+
+12. Pour les derniers logs:
+
+```bash
+kubectl logs -l app=dyno-code --tail=1
 ```
