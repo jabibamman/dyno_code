@@ -21,4 +21,6 @@ uuid = { version = "1.8.0", features = ["v4"] }
 kube = "0.91.0"
 log = "0.4.14"
 env_logger = "0.11.3"
+dotenv = "0.15.0"
 tokio = { version = "1.0", features = ["full"] }
+async-trait = "0.1"
