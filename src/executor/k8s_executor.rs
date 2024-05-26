@@ -13,6 +13,7 @@ use tokio::task;
 use tokio::time::sleep;
 
 pub struct K8sExecutor;
+const DEFAULT_ERROR_MESSAGE: &str = "EXECUTOR_ERROR";
 
 #[async_trait::async_trait]
 impl CodeExecutor for K8sExecutor {
@@ -46,13 +47,13 @@ impl CodeExecutor for K8sExecutor {
                         "restartPolicy": "Never"
                     }
                 },
-                "backoffLimit": 4
+                "backoffLimit": 2
             }
         });
 
         let job_spec: Job = serde_json::from_value(job_spec)?;
         jobs.create(&PostParams::default(), &job_spec).await?;
-        let logs = Self::wait_for_pod_and_get_logs(&client, &job_name).await?;
+        let (output, error) = Self::wait_for_pod_and_get_logs(&client, &job_name).await?;
 
         let jobs_clone = jobs.clone();
         let job_name_clone = job_name.clone();
@@ -63,8 +64,8 @@ impl CodeExecutor for K8sExecutor {
         });
 
         Ok(ExecutionResult {
-            output: logs,
-            error: String::new(),
+            output,
+            error,
         })
     }
 }
@@ -73,10 +74,10 @@ impl K8sExecutor {
     async fn wait_for_pod_and_get_logs(
         client: &Client,
         job_name: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<(String, String), Box<dyn std::error::Error>> {
         let pods: Api<k8s_openapi::api::core::v1::Pod> = Api::default_namespaced(client.clone());
 
-        for _ in 0..10 {
+        for _ in 0..180 {
             let pod_list = pods
                 .list(&Default::default())
                 .await?
@@ -94,7 +95,13 @@ impl K8sExecutor {
                 let pod_name = pod.metadata.name.as_ref().ok_or("Pod name not found")?;
                 let log_params = Default::default();
                 match pods.logs(pod_name, &log_params).await {
-                    Ok(logs) => return Ok(logs),
+                    Ok(logs) => {
+                        if logs.contains(DEFAULT_ERROR_MESSAGE) {
+                            return Ok((String::new(), logs.replace(DEFAULT_ERROR_MESSAGE, "").trim().to_string()));
+                        }
+                        
+                        return Ok((logs.trim().to_string(), String::new()));  
+                    }
                     Err(_) => {
                         debug!("Pod is not ready yet, retrying...");
                         sleep(Duration::from_secs(1)).await;
@@ -113,7 +120,7 @@ impl K8sExecutor {
         jobs: &Api<Job>,
         job_name: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        for _ in 0..10 {
+        for _ in 0..60 {
             let job = jobs.get(job_name).await?;
             if let Some(JobStatus { conditions, .. }) = job.status {
                 if let Some(condition) = conditions.as_ref().and_then(|conds| {
@@ -121,7 +128,7 @@ impl K8sExecutor {
                         .iter()
                         .find(|&c| c.type_ == "Complete" || c.type_ == "Failed")
                 }) {
-                    if condition.status == "True" {
+                    if condition.status == "True" || condition.status == "False" || condition.status == "Unknown" {
                         jobs.delete(job_name, &DeleteParams::default()).await?;
                         info!("Deleted Job with name: {}", job_name);
                         return Ok(());
