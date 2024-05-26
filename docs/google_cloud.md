@@ -153,3 +153,9 @@ kubectl logs -f deployment/dyno-code-deployment
 ```bash
 kubectl logs -f <pod_name>
 ```
+
+12. Pour les derniers logs:
+
+```bash
+kubectl logs -l app=dyno-code --tail=1
+```
