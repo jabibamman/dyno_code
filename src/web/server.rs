@@ -1,12 +1,24 @@
 use actix_cors::Cors;
-use actix_web::http;
-use actix_web::{web, App, HttpResponse, HttpServer};
-use log::{error, info};
-use std::env;
-use std::net::Ipv4Addr;
+use actix_web::{
+    http,
+    web,
+    App,
+    HttpResponse,
+    HttpServer,
+};
+use log::{
+    error,
+    info,
+};
+use std::{
+    env,
+    net::Ipv4Addr,
+};
 
-use crate::executor::CodeExecutor;
-use crate::executor::K8sExecutor;
+use crate::executor::{
+    CodeExecutor,
+    K8sExecutor,
+};
 
 use crate::types::ExecutionPayload;
 const DEFAULT_PORT: u16 = 8080;

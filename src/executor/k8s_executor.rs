@@ -1,16 +1,36 @@
-use crate::executor::CodeExecutor;
-use crate::types::{ExecutionPayload, ExecutionResult};
-use k8s_openapi::api::batch::v1::{Job, JobStatus};
-use kube::{
-    api::{DeleteParams, PostParams},
-    Api, Client,
+use crate::{
+    executor::CodeExecutor,
+    types::{
+        ExecutionPayload,
+        ExecutionResult,
+    },
 };
-use log::{debug, error, info};
+use k8s_openapi::api::batch::v1::{
+    Job,
+    JobStatus,
+};
+use kube::{
+    api::{
+        DeleteParams,
+        PostParams,
+    },
+    Api,
+    Client,
+};
+use log::{
+    debug,
+    error,
+    info,
+};
 use serde_json::json;
-use std::env;
-use std::time::Duration;
-use tokio::task;
-use tokio::time::sleep;
+use std::{
+    env,
+    time::Duration,
+};
+use tokio::{
+    task,
+    time::sleep,
+};
 
 pub struct K8sExecutor;
 const DEFAULT_ERROR_MESSAGE: &str = "EXECUTOR_ERROR";
@@ -52,7 +72,7 @@ impl CodeExecutor for K8sExecutor {
                                 },
                                 "readOnlyRootFilesystem": true,
                                 "seccompProfile": {
-                                    "type": "RuntimeDefault" 
+                                    "type": "RuntimeDefault"
                                 },
                                 "runAsNonRoot": true,
                                 "privileged": false
@@ -105,10 +125,7 @@ impl CodeExecutor for K8sExecutor {
             }
         });
 
-        Ok(ExecutionResult {
-            output,
-            error,
-        })
+        Ok(ExecutionResult { output, error })
     }
 }
 
@@ -141,11 +158,14 @@ impl K8sExecutor {
                         if logs.contains(DEFAULT_ERROR_MESSAGE) {
                             pods.delete(pod_name, &DeleteParams::default()).await?;
                             info!("Deleted Pod with name: {}", pod_name);
-                            return Ok((String::new(), logs.replace(DEFAULT_ERROR_MESSAGE, "").trim().to_string()));
+                            return Ok((
+                                String::new(),
+                                logs.replace(DEFAULT_ERROR_MESSAGE, "").trim().to_string(),
+                            ));
                         }
                         pods.delete(pod_name, &DeleteParams::default()).await?;
                         info!("Deleted Pod with name: {}", pod_name);
-                        return Ok((logs.trim().to_string(), String::new()));  
+                        return Ok((logs.trim().to_string(), String::new()));
                     }
                     Err(_) => {
                         debug!("Pod is not ready yet, retrying...");
@@ -173,7 +193,10 @@ impl K8sExecutor {
                         .iter()
                         .find(|&c| c.type_ == "Complete" || c.type_ == "Failed")
                 }) {
-                    if condition.status == "True" || condition.status == "False" || condition.status == "Unknown" {
+                    if condition.status == "True"
+                        || condition.status == "False"
+                        || condition.status == "Unknown"
+                    {
                         jobs.delete(job_name, &DeleteParams::default()).await?;
                         info!("Deleted Job with name: {}", job_name);
                         return Ok(());
