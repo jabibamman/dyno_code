@@ -1,12 +1,15 @@
 use crate::executor::CodeExecutor;
 use crate::types::{ExecutionPayload, ExecutionResult};
 use k8s_openapi::api::batch::v1::{Job, JobStatus};
-use kube::{api::{DeleteParams, PostParams}, Api, Client};
-use log::{debug, info};
+use kube::{
+    api::{DeleteParams, PostParams},
+    Api, Client,
+};
+use log::{debug, error, info};
 use serde_json::json;
-use tokio::task;
 use std::env;
 use std::time::Duration;
+use tokio::task;
 use tokio::time::sleep;
 
 pub struct K8sExecutor;
@@ -51,12 +54,11 @@ impl CodeExecutor for K8sExecutor {
         jobs.create(&PostParams::default(), &job_spec).await?;
         let logs = Self::wait_for_pod_and_get_logs(&client, &job_name).await?;
 
-
         let jobs_clone = jobs.clone();
         let job_name_clone = job_name.clone();
         task::spawn(async move {
             if let Err(e) = Self::cleanup_job(&jobs_clone, &job_name_clone).await {
-                debug!("Failed to cleanup job: {}", e);
+                error!("Failed to clean up job {}: {:?}", job_name_clone, e);
             }
         });
 
@@ -107,14 +109,18 @@ impl K8sExecutor {
         Err("No pods found for the job".into())
     }
 
-    async fn cleanup_job(jobs: &Api<Job>, job_name: &str) -> Result<(), Box<dyn std::error::Error>> {
-        info!("Waiting for Job to finish: {}", job_name);
+    async fn cleanup_job(
+        jobs: &Api<Job>,
+        job_name: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         for _ in 0..10 {
             let job = jobs.get(job_name).await?;
             if let Some(JobStatus { conditions, .. }) = job.status {
-                if let Some(condition) = conditions.as_ref().and_then(|conds| 
-                    conds.iter().find(|&c| c.type_ == "Complete" || c.type_ == "Failed")
-                ) {
+                if let Some(condition) = conditions.as_ref().and_then(|conds| {
+                    conds
+                        .iter()
+                        .find(|&c| c.type_ == "Complete" || c.type_ == "Failed")
+                }) {
                     if condition.status == "True" {
                         jobs.delete(job_name, &DeleteParams::default()).await?;
                         info!("Deleted Job with name: {}", job_name);
@@ -122,7 +128,7 @@ impl K8sExecutor {
                     }
                 }
             }
-            info!("Job not finished yet, retrying...");
+            debug!("Job not finished yet, retrying...");
             sleep(Duration::from_secs(1)).await;
         }
 
