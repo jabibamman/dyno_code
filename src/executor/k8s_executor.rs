@@ -43,8 +43,50 @@ impl CodeExecutor for K8sExecutor {
                             "name": "executor",
                             "image": format!("gcr.io/{}/executor:latest", project_id),
                             "command": ["sh", "-c", format!("./executor_script.sh {} '{}'", payload.language, payload.code)],
+                            "securityContext": {
+                                "runAsUser": 1000,
+                                "runAsGroup": 1000,
+                                "allowPrivilegeEscalation": false,
+                                "capabilities": {
+                                    "drop": ["ALL"]
+                                },
+                                "readOnlyRootFilesystem": true,
+                                "seccompProfile": {
+                                    "type": "RuntimeDefault" 
+                                },
+                                "runAsNonRoot": true,
+                                "privileged": false
+                            },
+                            "resources": {
+                                "limits": {
+                                    "memory": "512Mi",
+                                    "cpu": "500m"
+                                },
+                                "requests": {
+                                    "memory": "256Mi",
+                                    "cpu": "250m"
+                                }
+                            },
+                            "volumeMounts": [{
+                                "name": "executor-tmp",
+                                "mountPath": "/tmp",
+                                "readOnly": false
+                            },
+                            {
+                                "name": "executor-sandbox",
+                                "mountPath": "/home/executor/sandbox",
+                                "readOnly": false
+                            }]
                         }],
-                        "restartPolicy": "Never"
+                        "restartPolicy": "Never",
+                        "volumes": [{
+                            "name": "executor-tmp",
+                            "emptyDir": {}
+                        },
+                        {
+                            "name": "executor-sandbox",
+                            "emptyDir": {}
+                        }]
                     }
                 },
                 "backoffLimit": 2
@@ -97,9 +139,12 @@ impl K8sExecutor {
                 match pods.logs(pod_name, &log_params).await {
                     Ok(logs) => {
                         if logs.contains(DEFAULT_ERROR_MESSAGE) {
+                            pods.delete(pod_name, &DeleteParams::default()).await?;
+                            info!("Deleted Pod with name: {}", pod_name);
                             return Ok((String::new(), logs.replace(DEFAULT_ERROR_MESSAGE, "").trim().to_string()));
                         }
-                        
+                        pods.delete(pod_name, &DeleteParams::default()).await?;
+                        info!("Deleted Pod with name: {}", pod_name);
                         return Ok((logs.trim().to_string(), String::new()));  
                     }
                     Err(_) => {

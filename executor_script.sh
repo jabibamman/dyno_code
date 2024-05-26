@@ -7,9 +7,11 @@ execute_code() {
   cmd=$1
   code=$2
 
-  RESULT=$(echo "$code" | $cmd 2>&1)
+  mkdir -p /home/executor/sandbox
+  cp $(which $cmd) /home/executor/sandbox/
+  echo "$code" > /home/executor/sandbox/code
+  /home/executor/sandbox/$(basename $cmd) /home/executor/sandbox/code 2>&1
   EXIT_CODE=$?
-  echo "$RESULT"
   if [ $EXIT_CODE -ne 0 ]; then
     echo "EXECUTOR_ERROR"
     exit 1
@@ -19,19 +21,17 @@ execute_code() {
 compile_and_execute_rust() {
   code=$1
 
-  echo "$code" > temp.rs
-  COMPILE_RESULT=$(rustc temp.rs 2>&1)
+  echo "$code" > /home/executor/sandbox/temp.rs
+  COMPILE_RESULT=$(rustc /home/executor/sandbox/temp.rs -o /home/executor/sandbox/temp 2>&1)
   COMPILE_EXIT_CODE=$?
   if [ $COMPILE_EXIT_CODE -ne 0 ]; then
     echo "$COMPILE_RESULT"
-    rm temp.rs
     echo "EXECUTOR_ERROR"
     exit 1
   fi
-  EXEC_RESULT=$(./temp 2>&1)
+  EXEC_RESULT=$(/home/executor/sandbox/temp 2>&1)
   EXEC_EXIT_CODE=$?
   echo "$EXEC_RESULT"
-  rm temp.rs temp
   if [ $EXEC_EXIT_CODE -ne 0 ]; then
     echo "EXECUTOR_ERROR"
     exit 1
