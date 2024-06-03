@@ -159,3 +159,40 @@ kubectl logs -f <pod_name>
 ```bash
 kubectl logs -l app=dyno-code --tail=1
 ```
+
+### Pour l'ingress
+
+1. Créez un ingress controller si vous n'en avez pas:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+```
+
+2. Créez l'ingress:
+
+```bash
+kubectl apply -f ingress.yaml
+```
+
+3. Pour voir les ingress:
+
+```bash
+kubectl get ingress
+```
+
+
+### Pour le cluster issuer
+
+1. Installer helm:
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+```
+
+2. Installer cert-manager:
+
+```bash
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.14.5/cert-manager.crds.yaml
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.14.5
+```
