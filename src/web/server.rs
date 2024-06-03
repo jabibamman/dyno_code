@@ -20,7 +20,10 @@ use crate::executor::{
     K8sExecutor,
 };
 
-use crate::types::ExecutionPayload;
+use crate::types::{
+    ExecutionPayload,
+    ExecutionResult,
+};
 const DEFAULT_PORT: u16 = 8080;
 
 async fn execute_code(payload: web::Json<ExecutionPayload>) -> impl actix_web::Responder {
@@ -28,10 +31,19 @@ async fn execute_code(payload: web::Json<ExecutionPayload>) -> impl actix_web::R
 
     let result = K8sExecutor::execute(&payload).await;
     match result {
-        Ok(execution_result) => HttpResponse::Ok().json(execution_result),
+        Ok(execution_result) => {
+            if !execution_result.error.is_empty() {
+                HttpResponse::BadRequest().json(execution_result)
+            } else {
+                HttpResponse::Ok().json(execution_result)
+            }
+        }
         Err(e) => {
             error!("Error executing code: {:?}", e);
-            HttpResponse::InternalServerError().finish()
+            HttpResponse::InternalServerError().json(ExecutionResult {
+                output: "".to_string(),
+                error: e.to_string(),
+            })
         }
     }
 }
