@@ -1,6 +1,6 @@
 [package]
 name = "dyno_code"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     "James <jabibamman@gmail.com>",
     "Ronan <ronan.kielt.mail@gmail.com>",
@@ -16,7 +16,7 @@ actix-cors = "0.7.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tempfile = "3.3.0"
-k8s-openapi = { version = "0.22.0", features = ["v1_29"] } 
+k8s-openapi = { version = "0.22.0", features = ["v1_29"] }
 uuid = { version = "1.8.0", features = ["v4"] }
 kube = "0.91.0"
 log = "0.4.14"
