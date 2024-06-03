@@ -3,15 +3,8 @@ kind: Ingress
 metadata:
   name: dyno-code-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
-  tls:
-    - hosts:
-        - dyno-code.code-valley.xyz
-      secretName: tls-secret
   rules:
     - host: dyno-code.code-valley.xyz
       http:

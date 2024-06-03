@@ -20,7 +20,6 @@ kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
 kubectl apply -f role_binding.yaml
 kubectl apply -f ingress.yaml
-kubectl apply -f cluster-issuer.yaml
 
 if [ "$deploy_dyno_code" = "y" ] || [ "$deploy_dyno_code" = "Y" ]; then
   kubectl set image deployment/dyno-code-deployment dyno-code=gcr.io/$project_id/dyno-code:latest

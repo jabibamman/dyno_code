@@ -122,6 +122,7 @@ docker push gcr.io/pa2024-421814/executor:latest
 kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
 kubectl apply -f role_binding.yaml
+kubectl apply -f ingress.yaml
 ```
 
 7. Si vous avez mis a jour le docker latest, vous pouvez mettre a jour l'image du pod:
@@ -195,4 +196,22 @@ helm repo update
 ```bash
 kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.14.5/cert-manager.crds.yaml
 helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.14.5
+```
+
+3. Créez un cluster issuer:
+
+```bash
+kubectl apply -f cluster-issuer.yaml
+```
+
+4. Pour voir les cluster issuers:
+
+```bash
+kubectl get clusterissuers
+```
+
+5. Pour être sur que le cluster issuer est bien installé:
+
+```bash
+kubectl describe clusterissuer letsencrypt-prod
 ```
