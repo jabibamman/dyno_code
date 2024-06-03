@@ -10,10 +10,7 @@ use log::{
     error,
     info,
 };
-use std::{
-    env,
-    net::Ipv4Addr,
-};
+use std::net::Ipv4Addr;
 
 use crate::executor::{
     CodeExecutor,
@@ -24,7 +21,12 @@ use crate::types::{
     ExecutionPayload,
     ExecutionResult,
 };
-const DEFAULT_PORT: u16 = 8080;
+
+use crate::api::{
+    check_version,
+    get_server_port,
+    health_check,
+};
 
 async fn execute_code(payload: web::Json<ExecutionPayload>) -> impl actix_web::Responder {
     info!("Received request to execute code: {:?}", payload);
@@ -76,15 +78,10 @@ pub async fn run_server() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .route("/execute", web::post().to(execute_code))
+            .route("/health", web::get().to(health_check))
+            .route("/version", web::get().to(check_version))
     })
     .bind(server_address)?
     .run()
     .await
-}
-
-fn get_server_port() -> u16 {
-    env::var("APP_PORT")
-        .unwrap_or_else(|_| DEFAULT_PORT.to_string())
-        .parse()
-        .unwrap_or(DEFAULT_PORT)
 }
