@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: clean-up-jobs
+spec:
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: dyno-code-sa
+          containers:
+          - name: clean-up
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "kubectl delete jobs --field-selector status.successful=1"]
+          restartPolicy: OnFailure

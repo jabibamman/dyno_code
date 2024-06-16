@@ -27,3 +27,41 @@ roleRef:
   kind: Role
   name: dyno-code-role
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: job-cleanup-role
+rules:
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: job-cleanup-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+roleRef:
+  kind: Role
+  name: job-cleanup-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dyno-code-job-cleanup-rolebinding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: dyno-code-sa
+  namespace: default
+roleRef:
+  kind: Role
+  name: job-cleanup-role
+  apiGroup: rbac.authorization.k8s.io
