@@ -62,7 +62,7 @@ impl CodeExecutor for K8sExecutor {
                         "containers": [{
                             "name": "executor",
                             "image": format!("gcr.io/{}/executor:latest", project_id),
-                            "command": ["sh", "-c", format!("./executor_script.sh {} '{}'", payload.language, payload.code)],
+                            "command": ["sh", "-c", format!("./executor_script.sh '{}' '{}' '{}'", payload.language, payload.code.replace("'", "'\\''"), payload.input)],
                             "securityContext": {
                                 "runAsUser": 1000,
                                 "runAsGroup": 1000,

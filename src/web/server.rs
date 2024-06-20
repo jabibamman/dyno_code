@@ -37,6 +37,7 @@ async fn execute_code(payload: web::Json<ExecutionPayload>) -> impl actix_web::R
             if !execution_result.error.is_empty() {
                 HttpResponse::BadRequest().json(execution_result)
             } else {
+                info!("Successfully executed code: {:?}", execution_result);
                 HttpResponse::Ok().json(execution_result)
             }
         }
