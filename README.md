@@ -10,6 +10,8 @@ Dyno code est un service web qui permet de compiler et d'exécuter du code en li
 - Support des langages de programmation suivants:
   - Python
   - Lua
+  - Rust
+  - JavaScript
 
 ## Déploiement sur Google Cloud
 
@@ -27,6 +29,7 @@ Attention, si vous souhaitez le lancer sans Docker, vous devez installer les dé
 - Python3 (voir [ici](https://www.python.org/downloads/))
 - Lua (voir [ici](https://www.lua.org/download.html))
 - Rutc (voir [ici](https://www.rust-lang.org/tools/install))
+- Node.js (voir [ici](https://nodejs.org/en/download/))
 
 ### Lancer le serveur
 

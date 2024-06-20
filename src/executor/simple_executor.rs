@@ -72,6 +72,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "python".to_string(),
             code: "print('Hello, world!')".to_string(),
+            input: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -85,6 +86,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "lua".to_string(),
             code: "print('Hello, world!\n')".to_string(),
+            input: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -98,6 +100,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "rust".to_string(),
             code: "fn main() { println!(\"Hello, world!\"); }".to_string(),
+            input: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -111,6 +114,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "unsupported".to_string(),
             code: "print('Hello, world!')".to_string(),
+            input: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);

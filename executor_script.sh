@@ -25,16 +25,30 @@ execute_code() {
     else
       echo -e "local file = io.open('/home/executor/sandbox/input', 'r')\nlocal input_data = file:read('*a')\nfile:close()\n$code" > /home/executor/sandbox/code
     fi
+  elif [[ $cmd == "node" ]]; then
+    if [[ -z "$input" ]]; then
+      echo "$code" > /home/executor/sandbox/code
+    else
+      echo -e "const fs = require('fs');\nconst input_data = fs.readFileSync('/home/executor/sandbox/input', 'utf8');\n$code" > /home/executor/sandbox/code
+    fi
   else
     echo "$code" > /home/executor/sandbox/code
   fi
 
-  /home/executor/sandbox/$(basename $cmd) /home/executor/sandbox/code 2>&1
+  output=$(mktemp)
+  error=$(mktemp)
+
+  /home/executor/sandbox/$(basename $cmd) /home/executor/sandbox/code > "$output" 2> "$error"
 
   EXIT_CODE=$?
   if [ $EXIT_CODE -ne 0 ]; then
+    cat "$error"
     echo "EXECUTOR_ERROR"
+    rm "$output" "$error"
     exit 1
+  else
+    cat "$output"
+    rm "$output" "$error"
   fi
 }
 
@@ -52,16 +66,26 @@ compile_and_execute_rust() {
     echo "EXECUTOR_ERROR"
     exit 1
   fi
+
+  output=$(mktemp)
+  error=$(mktemp)
+
   if [[ -z "$input" ]]; then
-    EXEC_RESULT=$(/home/executor/sandbox/temp 2>&1)
+    /home/executor/sandbox/temp > "$output" 2> "$error"
   else
-    EXEC_RESULT=$(/home/executor/sandbox/temp /home/executor/sandbox/input 2>&1)
+    /home/executor/sandbox/temp /home/executor/sandbox/input > "$output" 2> "$error"
   fi
+
+  EXEC_RESULT=$(cat "$output")
   EXEC_EXIT_CODE=$?
-  echo "$EXEC_RESULT"
   if [ $EXEC_EXIT_CODE -ne 0 ]; then
+    cat "$error"
     echo "EXECUTOR_ERROR"
+    rm "$output" "$error"
     exit 1
+  else
+    cat "$output"
+    rm "$output" "$error"
   fi
 }
 
@@ -71,6 +95,9 @@ case $LANGUAGE in
     ;;
   "lua")
     execute_code "lua" "$CODE" "$INPUT"
+    ;;
+  "javascript")
+    execute_code "node" "$CODE" "$INPUT"
     ;;
   "rust")
     compile_and_execute_rust "$CODE" "$INPUT"
