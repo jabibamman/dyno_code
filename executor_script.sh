@@ -13,11 +13,18 @@ execute_code() {
   cp $(which $cmd) /home/executor/sandbox/
   echo "$input" > /home/executor/sandbox/input
 
-  # Ajouter automatiquement le code pour lire l'input pour Python et Lua
   if [[ $cmd == "python3" ]]; then
-    echo -e "with open('/home/executor/sandbox/input') as f:\n    input_data = f.read()\n$code" > /home/executor/sandbox/code
+    if [[ -z "$input" ]]; then
+      echo "$code" > /home/executor/sandbox/code
+    else
+      echo -e "with open('/home/executor/sandbox/input') as f:\n    input_data = f.read()\n$code" > /home/executor/sandbox/code
+    fi
   elif [[ $cmd == "lua" ]]; then
-    echo -e "local file = io.open('/home/executor/sandbox/input', 'r')\nlocal input_data = file:read('*a')\nfile:close()\n$code" > /home/executor/sandbox/code
+    if [[ -z "$input" ]]; then
+      echo "$code" > /home/executor/sandbox/code
+    else
+      echo -e "local file = io.open('/home/executor/sandbox/input', 'r')\nlocal input_data = file:read('*a')\nfile:close()\n$code" > /home/executor/sandbox/code
+    fi
   else
     echo "$code" > /home/executor/sandbox/code
   fi
@@ -45,7 +52,11 @@ compile_and_execute_rust() {
     echo "EXECUTOR_ERROR"
     exit 1
   fi
-  EXEC_RESULT=$(/home/executor/sandbox/temp /home/executor/sandbox/input 2>&1)
+  if [[ -z "$input" ]]; then
+    EXEC_RESULT=$(/home/executor/sandbox/temp 2>&1)
+  else
+    EXEC_RESULT=$(/home/executor/sandbox/temp /home/executor/sandbox/input 2>&1)
+  fi
   EXEC_EXIT_CODE=$?
   echo "$EXEC_RESULT"
   if [ $EXEC_EXIT_CODE -ne 0 ]; then
