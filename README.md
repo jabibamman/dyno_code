@@ -54,6 +54,12 @@ kubectl get pods -l app=dyno-code
 kubectl logs -f <pod_name>
 ```
 
+Se connecter en shell dans le pod :
+
+```bash
+kubectl exec --stdin --tty <the pod name> -- sh
+```
+
 ### Le formattage
 
 ```bash

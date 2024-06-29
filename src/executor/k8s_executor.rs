@@ -47,6 +47,20 @@ impl CodeExecutor for K8sExecutor {
         let job_name = format!("job-{}", uuid::Uuid::new_v4());
         info!("Creating Job with name: {}", job_name);
 
+        let input_file_arg = match &payload.input_file_path {
+            Some(path) => format!(
+                "/mnt/shared/{}",
+                std::path::Path::new(path)
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+            ),
+            None => "".to_string(),
+        };
+
+        info!("Input file path: {}", input_file_arg);
+
         let job_spec = json!({
             "apiVersion": "batch/v1",
             "kind": "Job",
@@ -66,8 +80,9 @@ impl CodeExecutor for K8sExecutor {
                                 "./executor_script.sh '{}' '{}' '{}'",
                                 payload.language,
                                 payload.code.replace("'", "'\\''"),
-                                payload.input.clone().unwrap_or_else(|| "".to_string())
-                            )],                            "securityContext": {
+                                input_file_arg
+                            )],
+                            "securityContext": {
                                 "runAsUser": 1000,
                                 "runAsGroup": 1000,
                                 "allowPrivilegeEscalation": false,
@@ -92,8 +107,8 @@ impl CodeExecutor for K8sExecutor {
                                 }
                             },
                             "volumeMounts": [{
-                                "name": "executor-tmp",
-                                "mountPath": "/tmp",
+                                "name": "shared-volume",
+                                "mountPath": "/mnt/shared",
                                 "readOnly": false
                             },
                             {
@@ -104,8 +119,10 @@ impl CodeExecutor for K8sExecutor {
                         }],
                         "restartPolicy": "Never",
                         "volumes": [{
-                            "name": "executor-tmp",
-                            "emptyDir": {}
+                            "name": "shared-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": "shared-pvc"
+                            }
                         },
                         {
                             "name": "executor-sandbox",
@@ -113,7 +130,7 @@ impl CodeExecutor for K8sExecutor {
                         }]
                     }
                 },
-                "backoffLimit": 2
+                "backoffLimit": 1
             }
         });
 

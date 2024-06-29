@@ -35,3 +35,10 @@ spec:
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 20
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /mnt/shared
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: shared-pvc

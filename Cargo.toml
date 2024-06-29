@@ -1,6 +1,6 @@
 [package]
 name = "dyno_code"
-version = "0.4.0"
+version = "0.5.0"
 authors = [
     "James <jabibamman@gmail.com>",
     "Ronan <ronan.kielt.mail@gmail.com>",
@@ -13,6 +13,8 @@ edition = "2021"
 [dependencies]
 actix-web = "4"
 actix-cors = "0.7.0"
+actix-multipart = "0.6.2"
+futures-util = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tempfile = "3.3.0"

@@ -7,7 +7,7 @@ use serde::{
 pub struct ExecutionPayload {
     pub language: String,
     pub code: String,
-    pub input: Option<String>,
+    pub input_file_path: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
