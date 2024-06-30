@@ -126,12 +126,12 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
         Ok(execution_result) => {
             if !execution_result.error.is_empty() {
                 if let Some(ref path) = payload.input_file_path {
-                    //tokio::fs::remove_file(path).await.unwrap();
+                    tokio::fs::remove_file(path).await.unwrap();
                 }
                 HttpResponse::BadRequest().json(execution_result)
             } else {
                 if let Some(ref path) = payload.input_file_path {
-                    //tokio::fs::remove_file(path).await.unwrap();
+                    tokio::fs::remove_file(path).await.unwrap();
                 }
                 info!("Successfully executed code: {:?}", execution_result);
                 HttpResponse::Ok().json(execution_result)
@@ -139,7 +139,7 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
         }
         Err(e) => {
             if let Some(ref path) = payload.input_file_path {
-                //tokio::fs::remove_file(path).await.unwrap();
+                tokio::fs::remove_file(path).await.unwrap();
             }
             error!("Error executing code: {:?}", e);
             HttpResponse::InternalServerError().json(ExecutionResult {
