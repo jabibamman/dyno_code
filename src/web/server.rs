@@ -14,10 +14,7 @@ use log::{
     info,
 };
 
-use std::{
-    env,
-    net::Ipv4Addr,
-};
+use std::net::Ipv4Addr;
 use tokio::{
     fs::File,
     io::AsyncWriteExt,
