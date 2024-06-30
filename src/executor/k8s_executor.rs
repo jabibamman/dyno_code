@@ -61,6 +61,11 @@ impl CodeExecutor for K8sExecutor {
 
         info!("Input file path: {}", input_file_arg);
 
+        let mut output_file_arg: String = "".to_string();
+        if !input_file_arg.is_empty() {
+            output_file_arg = format!("/mnt/shared/output/output_{}", uuid::Uuid::new_v4());
+        }
+
         let job_spec = json!({
             "apiVersion": "batch/v1",
             "kind": "Job",
@@ -77,10 +82,11 @@ impl CodeExecutor for K8sExecutor {
                             "name": "executor",
                             "image": format!("gcr.io/{}/executor:latest", project_id),
                             "command": ["sh", "-c", format!(
-                                "./executor_script.sh '{}' '{}' '{}'",
+                                "./executor_script.sh '{}' '{}' '{}' '{}'",
                                 payload.language,
                                 payload.code.replace("'", "'\\''"),
-                                input_file_arg
+                                input_file_arg,
+                                output_file_arg
                             )],
                             "securityContext": {
                                 "runAsUser": 1000,
@@ -146,7 +152,12 @@ impl CodeExecutor for K8sExecutor {
             }
         });
 
-        Ok(ExecutionResult { output, error })
+        Ok(ExecutionResult {
+            output,
+            error,
+            output_file_path: Some(output_file_arg),
+            output_file_content: Some(String::new()),
+        })
     }
 }
 

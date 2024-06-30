@@ -3,7 +3,7 @@
 LANGUAGE=$1
 CODE=$2
 INPUT_FILE=$3
-OUTPUT_FILE="/mnt/shared/output/output_$(date +%s).txt"
+OUTPUT_FILE=$4
 
 execute_code() {
   cmd=$1
