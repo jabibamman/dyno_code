@@ -63,8 +63,30 @@ compile_and_execute_rust() {
   input_file=$2
   output_file=$3
 
-  echo "$code" > /home/executor/sandbox/temp.rs
-  cp "$input_file" /home/executor/sandbox/input
+  mkdir -p /home/executor/sandbox
+
+  if [[ -z "$input_file" ]]; then
+    echo "$code" > /home/executor/sandbox/temp.rs
+  else
+    echo "$input_file" > /home/executor/sandbox/input
+    file_path="/home/executor/sandbox/temp_temp.rs"
+    echo "$code" > "$file_path"
+    awk '{ gsub("{{INPUT_PATH}}", "'/mnt/shared/$(basename $input_file)'"); gsub("{{OUTPUT_PATH}}", "'/mnt/shared/output/$(basename $output_file)'"); print }' $file_path > /home/executor/sandbox/temp.rs
+
+    # DEBUG
+    #cat /home/executor/sandbox/temp.rs > /mnt/shared/output/debug_temp.rs
+    #cat $input_file > /mnt/shared/output/debug_input.rs
+  fi
+
+  if [ ! -s /home/executor/sandbox/temp.rs ]; then
+    echo "No code to compile"
+    echo "EXECUTOR_ERROR"
+    exit 1
+  fi
+  
+  # DEBUG
+  #echo "$code_with_paths" > /mnt/shared/output/$(basename $output_file).rs
+  export TMPDIR=/home/executor/sandbox
 
   COMPILE_RESULT=$(rustc /home/executor/sandbox/temp.rs -o /home/executor/sandbox/temp 2>&1)
   COMPILE_EXIT_CODE=$?
@@ -74,18 +96,23 @@ compile_and_execute_rust() {
     exit 1
   fi
 
-
   output=$(mktemp /home/executor/sandbox/tmp.XXXXXXXXXX)
   error=$(mktemp /home/executor/sandbox/tmp.XXXXXXXXXX)
 
   if [[ -z "$input_file" ]]; then
     /home/executor/sandbox/temp > "$output" 2> "$error"
   else
-    /home/executor/sandbox/temp /home/executor/sandbox/input > "$output" 2> "$error"
+    /home/executor/sandbox/temp /mnt/shared/input/$(basename $input_file) > "$output" 2> "$error"
   fi
 
-  EXEC_RESULT=$(cat "$output")
-  EXEC_EXIT_CODE=$?
+  if [ ! -s "$output" ]; then
+    EXEC_RESULT=$(cat "$error")
+    EXEC_EXIT_CODE=1
+  else
+    EXEC_RESULT=$(cat "$output")
+    EXEC_EXIT_CODE=0
+  fi
+
   if [ $EXEC_EXIT_CODE -ne 0 ]; then
     cat "$error"
     echo "EXECUTOR_ERROR"

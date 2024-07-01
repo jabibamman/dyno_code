@@ -85,6 +85,12 @@ rustup override set nightly
   rm -v ????????-????-????-*
   ```
 
+### Delete all Output from /mnt/shared/output
+  
+  ```bash
+  find . -name 'output*' -exec rm {} \;
+  ```
+  
 ## Auteurs
 
 - [James ABIB](https://github.com/jabibamman)
