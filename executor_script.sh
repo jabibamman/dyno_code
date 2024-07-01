@@ -68,14 +68,11 @@ compile_and_execute_rust() {
   if [[ -z "$input_file" ]]; then
     echo "$code" > /home/executor/sandbox/temp.rs
   else
-    echo "$input_file" > /home/executor/sandbox/input
-    file_path="/home/executor/sandbox/temp_temp.rs"
-    echo "$code" > "$file_path"
-    awk '{ gsub("{{INPUT_PATH}}", "'/mnt/shared/$(basename $input_file)'"); gsub("{{OUTPUT_PATH}}", "'/mnt/shared/output/$(basename $output_file)'"); print }' $file_path > /home/executor/sandbox/temp.rs
+    file_path="/home/executor/sandbox/temp.rs"
+    echo "$code" | awk 'BEGIN{print "const INPUT_PATH: &str = \"'/mnt/shared/$(basename $input_file)'\";\nconst OUTPUT_PATH: &str = \"'/mnt/shared/output/$(basename $output_file)'\";"} 1' > $file_path
 
     # DEBUG
     #cat /home/executor/sandbox/temp.rs > /mnt/shared/output/debug_temp.rs
-    #cat $input_file > /mnt/shared/output/debug_input.rs
   fi
 
   if [ ! -s /home/executor/sandbox/temp.rs ]; then
@@ -83,7 +80,7 @@ compile_and_execute_rust() {
     echo "EXECUTOR_ERROR"
     exit 1
   fi
-  
+
   # DEBUG
   #echo "$code_with_paths" > /mnt/shared/output/$(basename $output_file).rs
   export TMPDIR=/home/executor/sandbox
