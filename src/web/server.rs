@@ -8,16 +8,19 @@ use actix_web::{
     HttpServer,
     Responder,
 };
+use base64::{
+    prelude::BASE64_STANDARD,
+    Engine,
+};
 use futures_util::stream::TryStreamExt;
 use log::{
     error,
     info,
 };
 
-use std::{
-    env,
-    net::Ipv4Addr,
-};
+use serde_json::json;
+
+use std::net::Ipv4Addr;
 use tokio::{
     fs::File,
     io::AsyncWriteExt,
@@ -123,28 +126,51 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
 
     let result = K8sExecutor::execute(&payload).await;
     match result {
-        Ok(execution_result) => {
+        Ok(mut execution_result) => {
+            if let Some(ref path) = payload.input_file_path {
+                tokio::fs::remove_file(path).await.unwrap();
+            }
+
+            if let Some(output_file_path) = execution_result.output_file_path.clone() {
+                if !output_file_path.is_empty() {
+                    info!(
+                        "Successfully processing output with file: {:?}",
+                        execution_result
+                    );
+
+                    let file_content = tokio::fs::read(&output_file_path)
+                        .await
+                        .unwrap_or_else(|_| Vec::new());
+
+                    execution_result.output_file_content =
+                        Some(BASE64_STANDARD.encode(&file_content));
+                }
+            }
+
+            let json_response = json!({
+                "output": execution_result.output,
+                "error": execution_result.error,
+                "output_file_path": execution_result.output_file_path,
+                "output_file_content": execution_result.output_file_content,
+            });
+
             if !execution_result.error.is_empty() {
-                if let Some(ref path) = payload.input_file_path {
-                    //tokio::fs::remove_file(path).await.unwrap();
-                }
-                HttpResponse::BadRequest().json(execution_result)
+                HttpResponse::BadRequest().json(json_response)
             } else {
-                if let Some(ref path) = payload.input_file_path {
-                    //tokio::fs::remove_file(path).await.unwrap();
-                }
-                info!("Successfully executed code: {:?}", execution_result);
-                HttpResponse::Ok().json(execution_result)
+                info!("Successfully returning output: {:?}", execution_result);
+                HttpResponse::Ok().json(json_response)
             }
         }
         Err(e) => {
             if let Some(ref path) = payload.input_file_path {
-                //tokio::fs::remove_file(path).await.unwrap();
+                tokio::fs::remove_file(path).await.unwrap();
             }
             error!("Error executing code: {:?}", e);
             HttpResponse::InternalServerError().json(ExecutionResult {
                 output: "".to_string(),
                 error: e.to_string(),
+                output_file_path: None,
+                output_file_content: None,
             })
         }
     }

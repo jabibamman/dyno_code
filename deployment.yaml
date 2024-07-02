@@ -15,6 +15,13 @@ spec:
         app: dyno-code
     spec:
       serviceAccountName: dyno-code-sa
+      initContainers:
+        - name: init-create-directories
+          image: busybox
+          command: ['sh', '-c', 'mkdir -p /mnt/shared/output /mnt/shared/output && chmod -R 777 /mnt/shared']
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /mnt/shared
       containers:
         - name: dyno-code
           image: gcr.io/pa2024-421814/dyno-code:latest

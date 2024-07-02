@@ -32,10 +32,14 @@ impl SimpleExecutor {
             Ok(output) => ExecutionResult {
                 output: String::from_utf8_lossy(&output.stdout).to_string(),
                 error: String::from_utf8_lossy(&output.stderr).to_string(),
+                output_file_path: Option::None,
+                output_file_content: Option::None,
             },
             Err(e) => ExecutionResult {
                 output: "".to_string(),
                 error: e.to_string(),
+                output_file_path: Option::None,
+                output_file_content: Option::None,
             },
         }
     }
@@ -72,7 +76,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "python".to_string(),
             code: "print('Hello, world!')".to_string(),
-            input: Option::None,
+            input_file_path: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -86,7 +90,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "lua".to_string(),
             code: "print('Hello, world!\n')".to_string(),
-            input: Option::None,
+            input_file_path: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -100,7 +104,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "rust".to_string(),
             code: "fn main() { println!(\"Hello, world!\"); }".to_string(),
-            input: Option::None,
+            input_file_path: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);
@@ -114,7 +118,7 @@ mod tests {
         let payload = ExecutionPayload {
             language: "unsupported".to_string(),
             code: "print('Hello, world!')".to_string(),
-            input: Option::None,
+            input_file_path: Option::None,
         };
 
         let result = SimpleExecutor::execute(&payload);

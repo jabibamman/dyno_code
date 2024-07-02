@@ -78,3 +78,19 @@ Vous pouvez utiliser la commande suivante :
 rustup toolchain install nightly
 rustup override set nightly
 ```
+
+### Delete all Input from /mnt/shared
+  
+  ```bash
+  rm -v ????????-????-????-*
+  ```
+
+### Delete all Output from /mnt/shared/output
+  
+  ```bash
+  find . -name 'output*' -exec rm {} \;
+  ```
+  
+## Auteurs
+
+- [James ABIB](https://github.com/jabibamman)
