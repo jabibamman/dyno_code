@@ -24,12 +24,12 @@ spec:
               mountPath: /mnt/shared
       containers:
         - name: dyno-code
-          image: gcr.io/pa2024-421814/dyno-code:latest
+          image: gcr.io/pa2024-428618/dyno-code:latest
           ports:
             - containerPort: 8080
           env:
             - name: GOOGLE_CLOUD_PROJECT_ID
-              value: "pa2024-421814"
+              value: "pa2024-428618"
           readinessProbe:
             httpGet:
               path: /health
@@ -48,4 +48,5 @@ spec:
       volumes:
         - name: shared-volume
           persistentVolumeClaim:
-            claimName: shared-pvc
+            claimName: shared-pvc-nfs
+            

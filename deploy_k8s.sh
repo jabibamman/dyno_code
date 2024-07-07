@@ -1,6 +1,6 @@
 #!/bin/sh
 
-project_id=pa2024-421814
+project_id=pa2024-428618
 
 read -p "Souhaitez-vous déployer dyno-code ? (y/n) " deploy_dyno_code
 read -p "Souhaitez-vous déployer executor ? (y/n) " deploy_executor
@@ -37,7 +37,10 @@ kubectl apply -f deployment.yaml
 kubectl apply -f service.yaml
 kubectl apply -f role_binding.yaml
 kubectl apply -f ingress.yaml
-kubectl apply -f pv-pvc.yaml
+kubectl apply -f nfs-server-service.yaml
+kubectl apply -f nfs-server.yaml
+kubectl apply -f pv-pvc-nfs.yaml
+#kubectl apply -f pv-pvc.yaml # Uncomment this line if you want to use local storage instead of NFS
 
 if [ "$deploy_dyno_code" = "y" ] || [ "$deploy_dyno_code" = "Y" ]; then
   kubectl set image deployment/dyno-code-deployment dyno-code=gcr.io/$project_id/dyno-code:latest

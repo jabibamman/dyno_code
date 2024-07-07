@@ -45,7 +45,10 @@ impl CodeExecutor for K8sExecutor {
             .expect("GOOGLE_CLOUD_PROJECT_ID environment variable must be set");
         let jobs: Api<Job> = Api::default_namespaced(client.clone());
         let job_name = format!("job-{}", uuid::Uuid::new_v4());
-        info!("Creating Job with name: {}", job_name);
+        info!(
+            "Creating Job with name: {}, to the project: {}",
+            job_name, project_id
+        );
 
         let input_file_arg = match &payload.input_file_path {
             Some(path) => format!(
@@ -73,6 +76,7 @@ impl CodeExecutor for K8sExecutor {
                 "name": job_name
             },
             "spec": {
+                "parallelism": 1,
                 "template": {
                     "metadata": {
                         "name": job_name
@@ -104,12 +108,12 @@ impl CodeExecutor for K8sExecutor {
                             },
                             "resources": {
                                 "limits": {
-                                    "memory": "512Mi",
-                                    "cpu": "500m"
+                                    "memory": "1024Mi",
+                                    "cpu": "1000m"
                                 },
                                 "requests": {
-                                    "memory": "256Mi",
-                                    "cpu": "250m"
+                                    "memory": "512Mi",
+                                    "cpu": "500m"
                                 }
                             },
                             "volumeMounts": [{
@@ -127,7 +131,7 @@ impl CodeExecutor for K8sExecutor {
                         "volumes": [{
                             "name": "shared-volume",
                             "persistentVolumeClaim": {
-                                "claimName": "shared-pvc"
+                                "claimName": "shared-pvc-nfs"
                             }
                         },
                         {
@@ -136,7 +140,7 @@ impl CodeExecutor for K8sExecutor {
                         }]
                     }
                 },
-                "backoffLimit": 1
+                "backoffLimit": 2
             }
         });
 
