@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nfs-server
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nfs-server
+  serviceName: "nfs-server"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+      - name: nfs-server
+        image: k8s.gcr.io/volume-nfs:0.8
+        ports:
+        - name: nfs
+          containerPort: 2049
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: nfs-data
+          mountPath: /exports
+      volumes:
+      - name: nfs-data
+        emptyDir: {}

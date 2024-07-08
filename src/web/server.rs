@@ -79,9 +79,13 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
                 let file_path = format!("/mnt/shared/{}", Uuid::new_v4());
                 info!("Writing input file to: {:?}", file_path);
                 let mut file = File::create(&file_path).await.unwrap();
+                let mut is_empty = true;
 
                 while let Some(chunk) = field.try_next().await.unwrap() {
                     info!("Writing chunk to file");
+                    if !chunk.is_empty() {
+                        is_empty = false;
+                    }
                     if let Err(e) = file.write_all(&chunk).await {
                         error!("Failed to write chunk to file: {:?}", e);
                         return HttpResponse::InternalServerError().body("Failed to write to file");
@@ -91,6 +95,14 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
                 if let Err(e) = file.flush().await {
                     error!("Failed to flush file: {:?}", e);
                     return HttpResponse::InternalServerError().body("Failed to flush file");
+                }
+
+                if is_empty {
+                    info!("Empty file received, deleting the file.");
+                    if let Err(e) = tokio::fs::remove_file(&file_path).await {
+                        error!("Failed to delete empty file: {:?}", e);
+                    }
+                    return HttpResponse::BadRequest().body("Empty file received");
                 }
 
                 input_file_path = Some(file_path);
