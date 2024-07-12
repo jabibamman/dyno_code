@@ -20,21 +20,21 @@ execute_code() {
     if [[ -z "$input_file" ]]; then
       echo "$code" > /home/executor/sandbox/code
     else
-      echo -e "with open('/home/executor/sandbox/$(basename $input_file)', 'r') as f:\n    input_data = f.read()\noutput_path = '$output_file'\n$code" > /home/executor/sandbox/code
+      echo -e "INPUT_PATH='/home/executor/sandbox/$(basename $input_file)'\nOUTPUT_PATH ='$output_file'\n$code" > /home/executor/sandbox/code
       cp "$input_file" /home/executor/sandbox/
     fi
   elif [[ $cmd == "lua" ]]; then
     if [[ -z "$input_file" ]]; then
       echo "$code" > /home/executor/sandbox/code
     else
-      echo -e "local file = io.open('/home/executor/sandbox/$(basename $input_file)', 'r')\nlocal input_data = file:read('*a')\nfile:close()\nlocal output_path = '$output_file'\n$code" > /home/executor/sandbox/code
+      echo -e "local INPUT_PATH = '/home/executor/sandbox/$(basename $input_file)'\nlocal OUTPUT_PATH = '$output_file'\n$code" > /home/executor/sandbox/code
       cp "$input_file" /home/executor/sandbox/
     fi
   elif [[ $cmd == "node" ]]; then
     if [[ -z "$input_file" ]]; then
       echo "$code" > /home/executor/sandbox/code
     else
-      echo -e "const fs = require('fs');\nconst input_data = fs.readFileSync('/home/executor/sandbox/$(basename $input_file)', 'utf8');\nconst output_path = '$output_file';\n$code" > /home/executor/sandbox/code
+      echo -e "const fs = require('fs');\nconst INPUT_PATH = '/home/executor/sandbox/$(basename $input_file)';\nconst OUTPUT_PATH = '$output_file';\n$code" > /home/executor/sandbox/code
       cp "$input_file" /home/executor/sandbox/
     fi
   else
