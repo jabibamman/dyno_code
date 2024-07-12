@@ -19,17 +19,12 @@ clean_old_images() {
 }
 
 if [ "$deploy_dyno_code" = "y" ] || [ "$deploy_dyno_code" = "Y" ]; then
-  docker build -t dyno_code_api/dyno-code:latest .
-  docker tag dyno_code_api/dyno-code:latest gcr.io/$project_id/dyno-code:latest
-  docker push gcr.io/$project_id/dyno-code:latest
-
+  docker buildx build --platform linux/amd64,linux/arm64 -t gcr.io/$project_id/dyno-code:latest --push .
   clean_old_images "dyno-code" "$project_id"
 fi
 
 if [ "$deploy_executor" = "y" ] || [ "$deploy_executor" = "Y" ]; then
-  docker build -f Dockerfile.executor -t gcr.io/$project_id/executor:latest .
-  docker push gcr.io/$project_id/executor:latest
-
+  docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.executor -t gcr.io/$project_id/executor:latest --push .
   clean_old_images "executor" "$project_id"
 fi
 
