@@ -69,6 +69,14 @@ impl CodeExecutor for K8sExecutor {
             output_file_arg = format!("/mnt/shared/output/output_{}", uuid::Uuid::new_v4());
         }
 
+        let image_name = match payload.language.as_str() {
+            "rust" => format!("gcr.io/{}/executor-rust:latest", project_id),
+            "python" => format!("gcr.io/{}/executor-python:latest", project_id),
+            "javascript" => format!("gcr.io/{}/executor-nodejs:latest", project_id),
+            "lua" => format!("gcr.io/{}/executor-lua:latest", project_id),
+            _ => return Err(Box::from("Unsupported language")),
+        };
+
         let job_spec = json!({
             "apiVersion": "batch/v1",
             "kind": "Job",
@@ -84,7 +92,7 @@ impl CodeExecutor for K8sExecutor {
                     "spec": {
                         "containers": [{
                             "name": "executor",
-                            "image": format!("gcr.io/{}/executor:latest", project_id),
+                            "image": image_name,
                             "command": ["sh", "-c", format!(
                                 "./executor_script.sh '{}' '{}' '{}' '{}'",
                                 payload.language,
