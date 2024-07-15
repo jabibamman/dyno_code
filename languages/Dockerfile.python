@@ -2,6 +2,8 @@ FROM python:3.9-slim-buster
 
 RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
 
+RUN pip install pandas numpy pillow
+
 RUN useradd -m -s /bin/bash executor && mkdir -p /home/executor/sandbox && chown -R executor:executor /home/executor/sandbox
 
 WORKDIR /usr/src/executor

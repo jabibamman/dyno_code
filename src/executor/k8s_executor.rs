@@ -64,10 +64,11 @@ impl CodeExecutor for K8sExecutor {
 
         info!("Input file path: {}", input_file_arg);
 
-        let mut output_file_arg: String = "".to_string();
-        if !input_file_arg.is_empty() {
-            output_file_arg = format!("/mnt/shared/output/output_{}", uuid::Uuid::new_v4());
-        }
+        let output_file_arg = format!(
+            "/mnt/shared/output/output_{}{}",
+            uuid::Uuid::new_v4(),
+            payload.output_extension.trim()
+        );
 
         let image_name = match payload.language.as_str() {
             "rust" => format!("gcr.io/{}/executor-rust:latest", project_id),

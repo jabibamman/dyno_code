@@ -62,9 +62,7 @@ compile_and_execute_rust() {
   code=$1
   input_file=$2
   output_file=$3
-
-  mkdir -p /home/executor/sandbox
-
+  
   if [[ -z "$input_file" ]]; then
     echo "$code" > /home/executor/sandbox/temp.rs
   else

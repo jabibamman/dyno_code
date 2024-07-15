@@ -46,6 +46,7 @@ use crate::api::{
 async fn execute_code(mut payload: Multipart) -> impl Responder {
     let mut language = None;
     let mut code = None;
+    let mut output_extension = Some(".txt".to_string());
     let mut input_file_path = None;
 
     while let Ok(Some(mut field)) = payload.try_next().await {
@@ -74,9 +75,32 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
                 }
                 code = Some(String::from_utf8(data).unwrap());
             }
+            "output_extension" => {
+                info!("Received output extension");
+                let mut data = Vec::new();
+                while let Some(chunk) = field.try_next().await.unwrap() {
+                    data.extend_from_slice(&chunk);
+                }
+                output_extension = Some(String::from_utf8(data).unwrap());
+                if output_extension == Some("".to_string())
+                    || output_extension == Some("null".to_string())
+                {
+                    output_extension = Some(".txt".to_string());
+                }
+            }
             "input_file" => {
                 info!("Received input file");
-                let file_path = format!("/mnt/shared/{}", Uuid::new_v4());
+                let filename = content_disposition
+                    .get_filename()
+                    .map(|name| name.to_string())
+                    .unwrap_or_else(|| Uuid::new_v4().to_string());
+
+                let extension = filename.split('.').last().unwrap_or("");
+                let file_path = if extension.is_empty() {
+                    format!("/mnt/shared/{}", Uuid::new_v4())
+                } else {
+                    format!("/mnt/shared/{}.{}", Uuid::new_v4(), extension)
+                };
                 info!("Writing input file to: {:?}", file_path);
                 let mut file = File::create(&file_path).await.unwrap();
                 let mut is_empty = true;
@@ -123,15 +147,27 @@ async fn execute_code(mut payload: Multipart) -> impl Responder {
     info!("Final language: {:?}", language);
     info!("Final code: {:?}", code);
     info!("Final input file path: {:?}", input_file_path);
+    info!("Final output extension: {:?}", output_extension);
 
-    if language.is_none() || code.is_none() {
-        return HttpResponse::BadRequest().body("Missing required fields: 'language' and 'code'");
+    match (language.is_none(), code.is_none()) {
+        (true, true) => {
+            return HttpResponse::BadRequest()
+                .body("Missing required fields: 'language' and 'code'");
+        }
+        (true, false) => {
+            return HttpResponse::BadRequest().body("Missing required field: 'language'");
+        }
+        (false, true) => {
+            return HttpResponse::BadRequest().body("Missing required field: 'code'");
+        }
+        _ => (),
     }
 
     let payload = ExecutionPayload {
         language: language.unwrap(),
         code: code.unwrap(),
         input_file_path,
+        output_extension: output_extension.unwrap(),
     };
 
     info!("Received request to execute code: {:?}", payload);
