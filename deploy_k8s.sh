@@ -62,7 +62,7 @@ if [ "$deploy_executor" = "y" ] || [ "$deploy_executor" = "Y" ]; then
   fi
 
   if [ "$deploy_lua" = "y" ] || [ "$deploy_lua" = "Y" ]; then
-    docker buildx build --platform linux/amd64,linux/arm64 -f languages/Dockerfile.lua -t gcr.io/$project_id/executor-lua:latest --push .
+    docker buildx build --platform $platform -f languages/Dockerfile.lua -t gcr.io/$project_id/executor-lua:latest --push .
   fi
 
   clean_old_images "executor" "$project_id"
