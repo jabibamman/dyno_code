@@ -1,6 +1,6 @@
 [package]
 name = "dyno_code"
-version = "0.5.0"
+version = "1.0.0"
 authors = [
     "James <jabibamman@gmail.com>",
     "Ronan <ronan.kielt.mail@gmail.com>",
